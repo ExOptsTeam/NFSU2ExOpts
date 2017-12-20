@@ -4,27 +4,36 @@
 #include "..\includes\injector\injector.hpp"
 #include <cstdint>
 #include "..\includes\IniReader.h"
+#include <d3d9.h>
 
 DWORD WINAPI Thing(LPVOID);
 
-unsigned char MinimumLap, MaximumLap, KOLap, MinimumCPU, MaximumCPU, KOCPU, MinimumLapLANC, MinimumLapLAND, MinimumLapLANS, MaximumLapLAN, MaximumPlayersLAN, MaximumDriftX;
-bool DriftPlus, DriftMultiply, UnlockRegionals, UnlockAll, UnlockTracks, EnableTrackSelectForFreeRun, AnyTrackInAnyMode, RemoveRaceBarriers, RemoveLockedAreaBarriers;
-
-float SplashScreenTimeLimit, NeonBrightness;
-bool MorePaint, MoreVinyls, nlgzrgnTakeOver, EnableCameras, ShowOnline, ShowOutrun, EnableTrackSelectForOutrun, once1, once2, ShowSubtitles, EnableTrackNameHook, UnfreezeKO, CarbonStyleRaceStatus;
+unsigned char MinimumLap, MaximumLap, KOLap, MinimumCPU, MaximumCPU, KOCPU, MinimumLapLANC, MinimumLapLAND, MinimumLapLANS, MaximumLapLAN, MaximumPlayersLAN, MaximumDriftX, HeadlightsMode, WindowedMode, WheelFix, ExperimentalSplitScreenFix, EnableDebugWorldCamera, GameRegion;
+bool DriftPlus, DriftMultiply, UnlockRegionals, UnlockAllThings, EnableTrackSelectForFreeRun, AnyTrackInAnyMode, RemoveRaceBarriers, RemoveLockedAreaBarriers, GarageCameraHacks, MorePaint, MoreVinyls, ExOptsTeamTakeOver, EnableCameras, ShowOnline, ShowOutrun, EnableTrackSelectForOutrun, once1, once2, ShowSubtitles, UnfreezeKO, CarbonStyleRaceStatus, AlwaysRain, EnableLANSwitcher, LANSwitcherMode, ShowMoreRaceOptions, ShowDebugCarCustomize, EnableSaveLoadHotPos, IsOnFocus, SkipMovies, EnableSound, EnableMusic;
+float SplashScreenTimeLimit, NeonBrightness, WorldAnimationSpeed, GameSpeed, HeadlightsAmount, GeneralRainAmount, RainXing, RainFallSpeed, RainGravity, LowBeamAmount, HighBeamAmount, RoadReflection, RainIntensity, FallingRainSize;
 int DriftMutliplierThresholdPoints[] = { 350, 1400, 4200, 11200, 22400, 38080, 57120, 85680, 300, 1200, 3600, 9600, 19200, 32640, 48960, 73440, 250, 1000, 3000, 8000, 16000, 27200, 40800, 61200, 200, 800, 2400, 6400, 12800, 21760, 32640, 48960};
-int hotkeyAnyTrackInAnyMode, hotkeyUnlockAllTracks;
-DWORD Strings;
+int hotkeyAnyTrackInAnyMode, hotkeyUnlockAllThings, hotkeyLANSwitcher, hotkeyToggleHeadLights, StartingCash;
+DWORD GameState;
+HWND windowHandle;
+
+char* StringBuffer1 = "© 2004 Electronic Arts Inc. All rights reserved.^NFSU2 Extra Options - © 2018 ExOpts Team. No rights reserved.";
+DWORD _181419E5_New = (DWORD)StringBuffer1;
 
 DWORD PaintCategoryCodeCaveExit = 0x55D270;
 DWORD PaintCategoryCodeCaveExit2 = 0x55D0F6;
 DWORD PaintCategoryCodeCaveJump1 = 0x55D112;
 DWORD PaintCategoryCodeCaveJump2 = 0x55D238;
-DWORD VinylCategoryCodeCaveCall = 0x545920;
-DWORD VinylCategoryCodeCaveCall2 = 0x505450;
 DWORD VinylCategoryCodeCaveExit = 0x546265;
 DWORD DriftMultiplierCodeCaveExit = 0x56DB59;
 DWORD BarrierCodeCaveExit = 0x578077;
+DWORD StringReplacementCodeCaveExit = 0x4FFA1F;
+DWORD StartingCashCodeCaveExit = 0x532913;
+DWORD DebugCarCustomizeCodeCaveExit = 0x520F51;
+
+void(__cdecl *j__malloc)(size_t a1) = (void(__cdecl*)(size_t))0x575620;
+int(__thiscall *AddElementToMenuWithStateID)(int _this, int a2, int a3, int a4, int a5) = (int(__thiscall*)(int, int, int, int, int))0x520CB0;
+void *(__thiscall *AddCustomElementToMenu)(void *_this, int a2, int a3, int a4) = (void*(__thiscall*)(void*, int, int, int))0x545920;
+int(__cdecl *sub_505450)(unsigned __int8 *a1) = (int(__cdecl*)(unsigned __int8*))0x505450;
 
 void __declspec(naked) PaintCategoryCodeCave()
 {
@@ -84,10 +93,10 @@ void __declspec(naked) VinylCategoryCodeCave()
 			push 0x93EC1CE9 // NFSU2 Icon Hash
 			push 0x1C // Hidden vinyl category
 			mov ecx, esi
-			call VinylCategoryCodeCaveCall
+			call AddCustomElementToMenu
 			mov eax, [esi + 0x04]
 			push eax
-			call VinylCategoryCodeCaveCall2
+			call sub_505450
 			jmp VinylCategoryCodeCaveExit
 	}
 }
@@ -133,15 +142,115 @@ void __declspec(naked) BarrierCodeCave()
 
 }
 
+void __declspec(naked) StringReplacementCodeCave()
+{
+	_asm
+	{
+		mov ecx, dword ptr ds : [ebx + eax * 0x08]
+
+		cmp ecx, 0x181419E5
+		je ReplaceCopyrightString
+		// cmp ecx, AnotherStringHashHere
+		// je ReplaceAnotherString
+		jmp continuee
+
+		ReplaceCopyrightString :
+			cmp ExOptsTeamTakeOver, 0x01
+			jne continuee
+			cmp once1, 0x01
+			je continuee
+			
+			push ecx
+			mov ecx, _181419E5_New
+			mov dword ptr ds : [ebx + eax * 0x08 + 0x04], ecx
+			mov once1, 0x01
+			pop ecx
+			//jmp continuee
+
+		continuee :
+			cmp ecx, edx
+			jmp StringReplacementCodeCaveExit
+
+	}
+}
+
+void __declspec(naked) StartingCashCodeCave()
+{
+	_asm
+	{
+		push eax
+		mov eax, StartingCash
+		mov dword ptr ds: [esi + 0x7134], eax
+		pop eax
+		jmp StartingCashCodeCaveExit
+	}
+}
+
+void __declspec(naked) DebugCarCustomizeCodeCave()
+{
+	_asm
+	{
+		mov edx, [edi]
+		push eax
+		mov ecx, edi
+		call dword ptr ds: [edx + 0x18]
+		push 0x4C
+		call j__malloc
+		add esp, 4
+		cmp eax, ebx
+		je DCCJump1
+		push ebx
+		push 0xE79A53F8 // "Debug"
+		push 0x74CE8C0B // UI_ICON_DEBUG
+		push 0x04 // 4 = UI_DebugCarCustomize.fng
+		mov ecx, eax
+		call AddElementToMenuWithStateID
+		jmp DCCJump2
+
+		DCCJump1 :
+			xor eax, eax
+
+		DCCJump2 :
+			mov edx, [edi]
+			push eax
+			mov ecx, edi
+
+		jmp DebugCarCustomizeCodeCaveExit
+	}
+}
+
+bool __stdcall CheckRaceModeHook(int TrackInfoBlock, int NoDragAndDriftRaces)
+{
+	bool result;
+	__int16 TrackID;
+	bool ZeroFlag;
+
+	if (!TrackInfoBlock) return 0; // If block failed to load
+
+	TrackID = *(WORD*)(TrackInfoBlock + 138);
+	
+	if (TrackID == 1001 || TrackID == 1002 || TrackID == 1003 || TrackID == 1099 || TrackID == 1102 || TrackID == 3001
+		|| TrackID == 4200 || TrackID == 4300 || TrackID == 4400 || TrackID == 4600 || TrackID == 4700 || TrackID == 4800 || TrackID == 4900) return 0; // If one of crashy tracks
+
+	return 1; // For all other races
+}
+
+bool __cdecl RegionLockHook(int CarID)
+{
+	return 1;
+}
+
 void Init()
 {
 	// Read values from .ini
 	CIniReader iniReader("NFSU2ExtraOptionsSettings.ini");
 
 	// Hotkeys
-	hotkeyUnlockAllTracks = iniReader.ReadInteger("Hotkeys", "UnlockAllTracks", 116); // F5
+	hotkeyUnlockAllThings = iniReader.ReadInteger("Hotkeys", "UnlockAllThings", 116); // F5
 	hotkeyAnyTrackInAnyMode = iniReader.ReadInteger("Hotkeys", "AnyTrackInAnyMode", 36); // HOME
-	
+	hotkeyToggleHeadLights = iniReader.ReadInteger("Hotkeys", "HeadLights", 72); // H
+	EnableSaveLoadHotPos = iniReader.ReadInteger("Hotkeys", "EnableSaveLoadHotPos", 0) == 1;
+
 	// LapControllers
 	MinimumLap = iniReader.ReadInteger("LapControllers", "Minimum", 0);
 	MaximumLap = iniReader.ReadInteger("LapControllers", "Maximum", 127);
@@ -152,13 +261,7 @@ void Init()
 	MinimumCPU = iniReader.ReadInteger("OpponentControllers", "Minimum", 0);
 	MaximumCPU = iniReader.ReadInteger("OpponentControllers", "Maximum", 5);
 	KOCPU = iniReader.ReadInteger("OpponentControllers", "KOEnabled", 5);
-
-	// LAN
-	MinimumLapLANC = iniReader.ReadInteger("LAN", "MinimumLapsCircuit", 0);
-	MinimumLapLAND = iniReader.ReadInteger("LAN", "MinimumLapsDrift", 0);
-	MinimumLapLANS = iniReader.ReadInteger("LAN", "MinimumLapsStreetX", 0);
-	MaximumLapLAN = iniReader.ReadInteger("LAN", "MaximumLaps", 127);
-	MaximumPlayersLAN = iniReader.ReadInteger("LAN", "MaximumPlayers", 6);
+	MaximumPlayersLAN = iniReader.ReadInteger("OpponentControllers", "MaximumLANPlayers", 6);
 
 	// Drift
 	MaximumDriftX = iniReader.ReadInteger("Drift", "MaximumMultiplier", 9);
@@ -166,46 +269,75 @@ void Init()
 	DriftMultiply = iniReader.ReadInteger("Drift", "ShowWithoutMultiplying", 0) == 1;
 
 	// Menu
-	ShowOnline = iniReader.ReadInteger("Menu", "ShowOnline", 1) == 1;
 	ShowOutrun = iniReader.ReadInteger("Menu", "ShowOutrun", 1) == 1;
-	ShowSubtitles = iniReader.ReadInteger("Menu", "ShowSubtitles", 1) == 1;
+	ShowMoreRaceOptions = iniReader.ReadInteger("Menu", "ShowMoreRaceOptions", 1) == 1;
+	ShowOnline = iniReader.ReadInteger("Menu", "ShowOnline", 1) == 1;
+	ShowSubtitles = iniReader.ReadInteger("Menu", "ShowSubs", 1) == 1;
+	MorePaint = iniReader.ReadInteger("Menu", "ShowMorePaintTypes", 1) == 1;
+	MoreVinyls = iniReader.ReadInteger("Menu", "ShowSpecialVinyls", 1) == 1;
+	ShowDebugCarCustomize = iniReader.ReadInteger("Menu", "ShowDebugCarCustomize", 0) == 1;
+	AnyTrackInAnyMode = iniReader.ReadInteger("Menu", "AnyTrackInAnyRaceMode", 1) == 1;
 	EnableTrackSelectForFreeRun = iniReader.ReadInteger("Menu", "FreeRunTrackSelect", 1) == 1;
 	EnableTrackSelectForOutrun = iniReader.ReadInteger("Menu", "OutrunTrackSelect", 1) == 1;
-	AnyTrackInAnyMode = iniReader.ReadInteger("Menu", "AnyTrackInAnyRaceMode", 1) == 1;
-	MorePaint = iniReader.ReadInteger("Menu", "MorePaintTypes", 1) == 1;
-	MoreVinyls = iniReader.ReadInteger("Menu", "ShowDebugVinylCategory", 1) == 1;
 	SplashScreenTimeLimit = iniReader.ReadFloat("Menu", "SplashScreenTimeLimit", 30.0f);
-	nlgzrgnTakeOver = iniReader.ReadInteger("Menu", "DisableTakeover", 0) == 0;
+	GarageCameraHacks = iniReader.ReadInteger("Menu", "ShowcaseCamInfiniteYRotation", 0) == 1;
+	ExOptsTeamTakeOver = iniReader.ReadInteger("Menu", "DisableTakeover", 0) == 0;
 
 	// Gameplay
 	EnableCameras = iniReader.ReadInteger("Gameplay", "EnableHiddenCameraModes", 1) == 1;
-	UnlockRegionals = iniReader.ReadInteger("Gameplay", "Unlock106AndCorsa", 1) == 1;
-	UnlockAll = iniReader.ReadInteger("Gameplay", "UnlockAllCars", 0) == 1;
-	UnlockTracks = iniReader.ReadInteger("Gameplay", "UnlockAllTracks", 1) == 1;
+	EnableDebugWorldCamera = iniReader.ReadInteger("Gameplay", "EnableDebugCamera", 0) == 1;
+	GameSpeed = iniReader.ReadFloat("Gameplay", "GameSpeed", 1.0f);
+	WorldAnimationSpeed = iniReader.ReadFloat("Gameplay", "WorldAnimationSpeed", 45.0f);
+	HeadlightsMode = iniReader.ReadInteger("Gameplay", "HeadLightsMode", 2);
+	LowBeamAmount = iniReader.ReadFloat("Gameplay", "LowBeamBrightness", 0.75f);
+	HighBeamAmount = iniReader.ReadFloat("Gameplay", "HighBeamBrightness", 1.00f);
 	RemoveRaceBarriers = iniReader.ReadInteger("Gameplay", "RemoveRaceBarriers", 0) == 1;
 	RemoveLockedAreaBarriers = iniReader.ReadInteger("Gameplay", "RemoveLockedAreaBarriers", 1) == 1;
-	NeonBrightness = iniReader.ReadFloat("Gameplay", "NeonBrightness", 1.0f);
 	CarbonStyleRaceStatus = iniReader.ReadInteger("Gameplay", "ShowPercentOn1LapRaces", 0) == 1;
+	GameRegion = iniReader.ReadInteger("Gameplay", "GameRegion", 0);
+	StartingCash = iniReader.ReadInteger("Gameplay", "StartingCash", 0);
+	UnlockRegionals = iniReader.ReadInteger("Gameplay", "UnlockRegionalCars", 1) == 1;
+	UnlockAllThings = iniReader.ReadInteger("Gameplay", "UnlockAllThings", 1) == 1;
+	NeonBrightness = iniReader.ReadFloat("Gameplay", "NeonBrightness", 1.0f);
+
+	// Weather
+	AlwaysRain = iniReader.ReadInteger("Weather", "AlwaysRain", 0) == 1;
+	GeneralRainAmount = iniReader.ReadFloat("Weather", "GeneralRainAmount", 1.0f);
+	RoadReflection = iniReader.ReadFloat("Weather", "RoadReflectionAmount", 1.0f);
+	FallingRainSize = iniReader.ReadFloat("Weather", "RainSize", 0.03f);
+	RainIntensity = iniReader.ReadFloat("Weather", "RainIntensity", 0.7f);
+	RainXing = iniReader.ReadFloat("Weather", "RainCrossing", 0.02f);
+	RainFallSpeed = iniReader.ReadFloat("Weather", "RainSpeed", 0.03f);
+	RainGravity = iniReader.ReadFloat("Weather", "RainGravity", 0.45f);
+
+	// Fixes
+	WheelFix = iniReader.ReadInteger("Fixes", "DisappearingWheelsFix", 1) == 1;
+	ExperimentalSplitScreenFix = iniReader.ReadInteger("Fixes", "ExperimentalSplitScreenFix", 0) == 1;
+
+	// Misc
+	WindowedMode = iniReader.ReadInteger("Misc", "WindowedMode", 0);
+	SkipMovies = iniReader.ReadInteger("Misc", "SkipMovies", 0) == 1;
+	EnableSound = iniReader.ReadInteger("Misc", "EnableSound", 1) == 1;
+	EnableMusic = iniReader.ReadInteger("Misc", "EnableMusic", 1) == 1;
 
 	// Restrictions
-	if (MinimumLap < 0 || MinimumLap > 127) MinimumLap = 1;
-	if (MaximumLap < 0 || MaximumLap > 127) MaximumLap = 10;
-	if (KOLap < 0 || KOLap > 127) KOLap = 3;
+	MinimumLap %= 128;
+	MaximumLap %= 128;
+	KOLap %= 128;
 
-	if (MinimumCPU < 0 || MinimumCPU > 5) MinimumCPU = 0;
-	if (MaximumCPU < 0 || MaximumCPU > 5) MaximumCPU = 3;
-	if (KOCPU < 0 || KOCPU > 5) KOCPU = 3;
+	MinimumCPU %= 6;
+	MaximumCPU %= 6;
+	KOCPU %= 6;
 
-	if (MinimumLapLANC < 0 || MinimumLapLANC > 127) MinimumLapLANC = 1;
-	if (MinimumLapLAND < 0 || MinimumLapLAND > 127) MinimumLapLAND = 1;
-	if (MinimumLapLANS < 0 || MinimumLapLANS > 127) MinimumLapLANS = 1;
-	if (MaximumLapLAN < 0 || MaximumLapLAN > 127) MaximumLapLAN = 10;
-	if (MaximumPlayersLAN < 2 || MaximumPlayersLAN > 6) MaximumPlayersLAN = 6;
+	GameRegion %= 13;
 
-	if (MaximumDriftX < 1 || MaximumDriftX > 9) MaximumDriftX = 5;
+	MaximumPlayersLAN %= 7;
+	if (MaximumPlayersLAN < 2) MaximumPlayersLAN = 2;
 
+	MaximumDriftX %= 10;
+	if (MaximumDriftX == 0) MaximumDriftX = 1;
 
-	// Main Code - Apply all the settings
+	// Lap and opponent controllers
 	injector::WriteMemory<unsigned char>(0x4B3D82, MinimumLap, true);		// Minimum Lap Controller For Decrement
 	injector::WriteMemory<unsigned char>(0x4B3D9B, MinimumLap, true);		// Minimum Lap Controller For Increment
 	injector::WriteMemory<unsigned char>(0x4B3D86, MaximumLap, true);		// Maximum Lap Controller For Decrement
@@ -218,11 +350,11 @@ void Init()
 	injector::WriteMemory<unsigned char>(0x4b3834, MaximumCPU, true);		// Maximum Opponent Controller
 	injector::WriteMemory<unsigned char>(0x4B4075, KOCPU, true);			// Amount of Opponents when KO Enabled
 
-	injector::WriteMemory<unsigned char>(0x4B3E7A, MinimumLapLANC, true);	// Minimum Lap Controller For LAN Circuit & URL
-	injector::WriteMemory<unsigned char>(0x4B3EE4, MinimumLapLAND, true);	// Minimum Lap Controller For LAN Drift
-	injector::WriteMemory<unsigned char>(0x4B3E9E, MinimumLapLANS, true);	// Minimum Lap Controller For LAN Street X
-	injector::WriteMemory<unsigned char>(0x4B3F30, MaximumLapLAN, true);	// Maximum Lap Controller For Decrement (Lan)
-	injector::WriteMemory<unsigned char>(0x4B3F41, MaximumLapLAN, true);	// Maximum Lap Controller For Increment (Lan)
+	injector::WriteMemory<unsigned char>(0x4B3E7A, MinimumLap, true);	// Minimum Lap Controller For LAN Circuit & URL
+	injector::WriteMemory<unsigned char>(0x4B3EE4, MinimumLap, true);	// Minimum Lap Controller For LAN Drift
+	injector::WriteMemory<unsigned char>(0x4B3E9E, MinimumLap, true);	// Minimum Lap Controller For LAN Street X
+	injector::WriteMemory<unsigned char>(0x4B3F30, MaximumLap, true);	// Maximum Lap Controller For Decrement (Lan)
+	injector::WriteMemory<unsigned char>(0x4B3F41, MaximumLap, true);	// Maximum Lap Controller For Increment (Lan)
 	injector::WriteMemory<unsigned char>(0x4B31AA, 0xB0, true);				// Maximum Players Fix - lea to mov al,X
 	injector::WriteMemory<unsigned char>(0x4B31AB, MaximumPlayersLAN, true);// Maximum Players Controller (LAN)
 	injector::MakeNOP(0x4B31AC, 2, true);									// Maximum Players Fix - nop remaining bytes from lea
@@ -269,23 +401,27 @@ void Init()
 		injector::WriteMemory<unsigned char>(0x7F7C48, 0xFF, true); // CORSA
 		injector::WriteMemory<unsigned char>(0x7F7C4C, 0xFF, true); // PEUGOT106
 
+		// Fix Civic and RSX for other regions
+		injector::WriteMemory<unsigned char>(0x7F7C50, 0xFF, true); // CIVIC
+		injector::WriteMemory<unsigned char>(0x7F7C54, 0xFF, true); // RSX
+
+		// Hook region lock to return always true
+		injector::MakeCALL(0x4DFA83, RegionLockHook, true);
+		injector::MakeCALL(0x4E2374, RegionLockHook, true);
+
 		// Unlock them as AI opponents
 		injector::WriteMemory<unsigned char>(0x4FEB9D, 0x1C, true); // Extend array by 2
 		injector::WriteMemory<unsigned char>(0x7F6DBE, 0x07, true); // CORSA
 		injector::WriteMemory<unsigned char>(0x7F6DBF, 0x06, true); // PEUGOT106
 	}
 
-	// Unlock All Cars
-	if (UnlockAll) 
-	{
-		injector::MakeNOP(0x4e23a2, 2, true); // Customize
-		injector::MakeNOP(0x4DFAB4, 2, true); // Car Lot
-	}
+	// Set Game Region
+	injector::WriteMemory<unsigned char>(0x864F24, GameRegion, true);
 
-	// Unlock All Tracks
-	if (UnlockTracks) 
+	// Unlock All Things - Load preference
+	if (UnlockAllThings) 
 	{
-		injector::MakeNOP(0x5156fa, 2, true);
+		injector::WriteMemory<unsigned char>(0x838464, 1, true);
 	}
 
 	// Enable Track Selection Screen for Free Run (9) Game Mode
@@ -312,6 +448,10 @@ void Init()
 	// Splash screen time limit
 	injector::WriteMemory<float>(0x784478, SplashScreenTimeLimit, true);
 
+	// Starting Cash
+	injector::MakeRangedNOP(0x53290D, StartingCashCodeCaveExit, true);
+	injector::MakeJMP(0x53290D, StartingCashCodeCave, true);
+
 	// Enable Drift Camera For All
 	if (EnableCameras)
 	{
@@ -319,10 +459,23 @@ void Init()
 		injector::MakeNOP(0x502572, 2, true);
 	}
 
+	// Show More Race Options
+	if (ShowMoreRaceOptions)
+	{
+		// Opponents in Sprint Drift Races
+		injector::MakeNOP(0x4CD8D8, 2, true); // Menu
+		injector::WriteMemory<unsigned char>(0x53F8B0, 0xEB, true); // Fix 0 overwrite
+		injector::WriteMemory<unsigned char>(0x56DA0C, 0xA0, true); // eax 0 = Autoscores, 1-5 = ai opponents
+		injector::MakeRangedNOP(0x56D9F1, 0x56DA0C, true); // 0 = Autoscores for all tracks
+		injector::WriteMemory<DWORD>(0x56DA0D, 0x83AB01, true); // ai count
+		injector::MakeRangedNOP(0x56DA11, 0x56DA16, true);
+	}
+
 	// Enable Outrun Track Select
 	if (EnableTrackSelectForOutrun)
 	{
 		injector::MakeNOP(0x4B2AA0, 2, true);
+		injector::MakeNOP(0x5268F8, 2, true); // Disable random outrun tracks
 	}
 
 	// Show Outrun at Quick Race Menu
@@ -336,6 +489,21 @@ void Init()
 	{
 		injector::WriteMemory<unsigned char>(0x4AEEDF, 0xEB, true);
 	}
+
+	if (ShowDebugCarCustomize)
+	{
+		injector::MakeRangedNOP(0x520F4C, DebugCarCustomizeCodeCaveExit, true);
+		injector::MakeJMP(0x520F4C, DebugCarCustomizeCodeCave, true);
+	}
+
+	// Show Any Track in Any Mode
+	if (AnyTrackInAnyMode)
+	{
+		injector::MakeCALL(0x4cdef5, CheckRaceModeHook, true);
+	}
+
+	// Takeover
+	injector::MakeJMP(0x4FFA1A, StringReplacementCodeCave, true);
 
 	// Show Subtitles
 	if (ShowSubtitles)
@@ -352,7 +520,6 @@ void Init()
 		injector::MakeJMP(0x55D26A, PaintCategoryCodeCave, true);
 		injector::MakeNOP(0x55D0F0, PaintCategoryCodeCaveExit2 - 0x55D0F0, true);
 		injector::MakeJMP(0x55D0F0, PaintCategoryCodeCave2, true);
-		
 	}
 
 	// Add Debug Vinyls to menu
@@ -380,8 +547,101 @@ void Init()
 		injector::WriteMemory<unsigned char>(0x4AA286, 0x85, true); // Jump to lap x/x
 	}
 
+	// Load headlights preferences
+	switch (HeadlightsMode)
+	{
+	case 0:
+		injector::WriteMemory<float>(0x615950, 0, true); // HeadLight
+		injector::WriteMemory<unsigned char>(0x7A3658, 0x00, true); //Remove flare
+		break;
+	case 1:
+		injector::WriteMemory<float>(0x615950, LowBeamAmount, true); // HeadLight
+		injector::WriteMemory<unsigned char>(0x7A3658, 'H', true);
+		break;
+	case 2: default:
+		injector::WriteMemory<float>(0x615950, HighBeamAmount, true); // HeadLight
+		injector::WriteMemory<unsigned char>(0x7A3658, 'H', true);
+		break;
+	}
+
 	// Neon Brightness
 	injector::WriteMemory<float>(0x60d8d0, NeonBrightness, true);
+
+	// World Animation Speed
+	injector::WriteMemory<float>(0x803A7C, WorldAnimationSpeed, true);
+	injector::MakeNOP(0x61F1F2, 6, true); // Fix animation stops when VSync = Off
+
+	// Game Speed
+	injector::WriteMemory<float>(0x7A5730, GameSpeed, true);
+
+	// Fix Outrun Mode Black Screen
+	if (ExperimentalSplitScreenFix)
+	{
+		injector::WriteMemory<unsigned char>(0x5DACDB, 0xEB, true);
+		injector::MakeNOP(0x5C23A9, 2, true);
+	}
+
+	// Fix Invisible Wheels
+	if (WheelFix)
+	{
+		injector::WriteMemory<unsigned char>(0x60c5a9, 0x01, true);
+	}
+	
+	// Debug World Camera
+	if (EnableDebugWorldCamera)
+	{
+		injector::WriteMemory<unsigned char>(0x865098, 0x01, true);
+	}
+
+	// Garage Hack
+	if (GarageCameraHacks)
+	{
+		injector::MakeNOP(0x44CE63, 5, true);
+		injector::WriteMemory<unsigned char>(0x44CE63, 0xB0, true);
+		injector::WriteMemory<unsigned char>(0x44CE64, 0x01, true);
+	}
+
+	// Rain
+	if (AlwaysRain)
+	{
+		injector::WriteMemory<unsigned char>(0x8A1D38, 0x01, true);
+	}
+	injector::WriteMemory<float>(0x803968, GeneralRainAmount, true);
+	injector::WriteMemory<float>(0x803AC8, RoadReflection, true);
+	injector::WriteMemory<float>(0x8039DC, FallingRainSize, true);
+	injector::WriteMemory<float>(0x8039E0, RainIntensity, true);
+	injector::WriteMemory<float>(0x803970, RainXing, true);
+	injector::WriteMemory<float>(0x803974, RainFallSpeed, true);
+	injector::WriteMemory<float>(0x803978, RainGravity, true);
+
+	// LAN Region Switcher - Init and Read Last State
+	if (EnableLANSwitcher)
+	{
+		injector::WriteMemory<unsigned char>(0x4FB57E, 0xB8, true); // mov eax,*
+		injector::WriteMemory<unsigned char>(0x4FB57F, LANSwitcherMode, true); // 00 (NTSC) or 01 (PAL)
+		injector::MemoryFill(0x4FB580, 0x00, 3, true); // 00 00 00
+	}
+
+	// Windowed Mode
+	if (WindowedMode != 0)
+	{
+		injector::WriteMemory<unsigned char>(0x87098C, 1, true);
+	}
+
+	if (SkipMovies)
+	{
+		//injector::WriteMemory<unsigned char>(0x926144, SkipMovies, true);
+	}
+
+	if (!EnableSound)
+	{
+		injector::WriteMemory<unsigned char>(0x7FAAA8, EnableSound, true);
+	}
+
+	if (!EnableMusic)
+	{
+		injector::WriteMemory<unsigned char>(0x7FAAAC, EnableMusic, true);
+	}
 
 	// Other things
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)&Thing, NULL, 0, NULL);
@@ -392,11 +652,37 @@ DWORD WINAPI Thing(LPVOID)
 	while (true)
 	{
 		Sleep(1);
-		//CIniReader TrackiniReader("NFSU2ExtraOptionsTracks.ini");
+		GameState = *(DWORD*)0x8654A4; // 3 = FE, 4&5 = Loading screen, 6 = Gameplay
+		windowHandle = *(HWND*)0x870990;
+		IsOnFocus = !(*(bool*)0x8709E0);
 		
-		Strings = *(DWORD*)0x8383D8; // String Table Pointer
+		// Windowed Mode Related Fixes
+		if (WindowedMode == 2 && windowHandle && !once2)
+		{
+			RECT o_cRect, n_cRect, n_wRect;
+			GetClientRect(windowHandle, &o_cRect);
 
-		if ((GetAsyncKeyState(hotkeyAnyTrackInAnyMode) & 1)) // When pressed "Any Track in Any Mode" key
+			DWORD wStyle = GetWindowLongPtr(windowHandle, GWL_STYLE) | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_OVERLAPPEDWINDOW;
+			SetWindowLongPtr(windowHandle, GWL_STYLE, wStyle);
+
+			// make window change style
+			SetWindowPos(windowHandle, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_DRAWFRAME);
+
+			GetWindowRect(windowHandle, &n_wRect);
+			GetClientRect(windowHandle, &n_cRect);
+			int n_wWidth = n_wRect.right - n_wRect.left;
+			int n_wHeight = n_wRect.bottom - n_wRect.top;
+			int dif_wWidth = o_cRect.right - n_cRect.right;
+			int dif_wHeight = o_cRect.bottom - n_cRect.bottom;
+			int newWidth = n_wWidth + dif_wWidth;
+			int newHeight = n_wHeight + dif_wHeight;
+
+			SetWindowPos(windowHandle, NULL, 0, 0, newWidth, newHeight, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+			
+			once2 = 1;
+		}
+
+		if ((GetAsyncKeyState(hotkeyAnyTrackInAnyMode) & 1) && IsOnFocus) // When pressed "Any Track in Any Mode" key
 		{
 			CIniReader iniReader("NFSU2ExtraOptionsSettings.ini");
 			AnyTrackInAnyMode = !AnyTrackInAnyMode;
@@ -404,45 +690,76 @@ DWORD WINAPI Thing(LPVOID)
 
 			if (AnyTrackInAnyMode)
 			{
-				injector::MakeNOP(0x4cdefc, 2, true);
+				injector::MakeCALL(0x4cdef5, CheckRaceModeHook, true);
 			}
 
 			else
 			{
-				injector::WriteMemory<WORD>(0x4cdefc, 0x0874 ,true);
+				injector::MakeCALL(0x4cdef5, 0x4987C0, true);
 			}
 
 			while ((GetAsyncKeyState(hotkeyAnyTrackInAnyMode) & 0x8000) > 0) { Sleep(0); }
 		}
-		
-		if (Strings && nlgzrgnTakeOver && !once2) // Indicate if ExOpts is Loaded at splash screen (If nlgzrgnTakeOver enabled)
-		{
-			DWORD CopyrightAddr = (Strings + 0xb9c);
-			char* Copyright = *(char**)CopyrightAddr;
-			char* Append = "^NFSU2 Extra Options - © 2016 nlgzrgn. No rights reserved.";
-			char* Tookover = strcat(Copyright, Append);
-			injector::WriteMemory<DWORD>(CopyrightAddr, (DWORD)Tookover, true);
-			once2 = 1;
-		}
 
-		if ((GetAsyncKeyState(hotkeyUnlockAllTracks) & 1)) // When pressed "Any Track in Any Mode" key
+		if ((GetAsyncKeyState(hotkeyUnlockAllThings) & 1) && IsOnFocus) // Unlock All Things
 		{
 			CIniReader iniReader("NFSU2ExtraOptionsSettings.ini");
-			UnlockTracks = !UnlockTracks;
-			iniReader.WriteInteger("Gameplay", "UnlockAllTracks", UnlockTracks);
+			UnlockAllThings = !UnlockAllThings;
+			iniReader.WriteInteger("Gameplay", "UnlockAllThings", UnlockAllThings);
 
-			if (UnlockTracks)
+			if (UnlockAllThings)
 			{
-				injector::MakeNOP(0x5156fa, 2, true);
+				injector::WriteMemory<unsigned char>(0x838464, 1, true);
 			}
 
 			else
 			{
-				injector::WriteMemory<WORD>(0x5156fa, 0x0474, true);
+				injector::WriteMemory<unsigned char>(0x838464, 0, true);
 			}
 
-			while ((GetAsyncKeyState(hotkeyUnlockAllTracks) & 0x8000) > 0) { Sleep(0); }
+			while ((GetAsyncKeyState(hotkeyUnlockAllThings) & 0x8000) > 0) { Sleep(0); }
 		}
+
+		// Headlights
+		if ((GetAsyncKeyState(hotkeyToggleHeadLights) & 1) && (GameState == 6) && IsOnFocus) // When pressed "Toggle Head Lights" key
+		{
+			HeadlightsMode = (HeadlightsMode + 1) % 3; // 0, 1 or 2
+			CIniReader iniReader("NFSU2ExtraOptionsSettings.ini");
+			iniReader.WriteInteger("Gameplay", "HeadLightsMode", HeadlightsMode);
+
+			switch (HeadlightsMode)
+			{
+			case 0:
+				injector::WriteMemory<float>(0x615950, 0, true); // HeadLight
+				injector::WriteMemory<unsigned char>(0x7A3658, 0x00, true); //Remove flare
+				break;
+			case 1:
+				injector::WriteMemory<float>(0x615950, LowBeamAmount, true); // HeadLight
+				injector::WriteMemory<unsigned char>(0x7A3658, 'H', true);
+				break;
+			case 2: default:
+				injector::WriteMemory<float>(0x615950, HighBeamAmount, true); // HeadLight
+				injector::WriteMemory<unsigned char>(0x7A3658, 'H', true);
+				break;
+			}
+
+			while ((GetAsyncKeyState(hotkeyToggleHeadLights) & 0x8000) > 0) { Sleep(0); }
+		}
+
+		// Save & Load Hot Position
+		if ((GameState == 6) && EnableSaveLoadHotPos && IsOnFocus)
+		{
+			if (GetAsyncKeyState(VK_LSHIFT) & GetAsyncKeyState(49) & 0x8000) // save
+			{
+				injector::WriteMemory<unsigned char>(0x8900CC, 1, true);
+			}
+
+			if (GetAsyncKeyState(VK_LCONTROL) & GetAsyncKeyState(49) & 0x8000) // load
+			{
+				injector::WriteMemory<unsigned char>(0x8900CD, 1, true);
+			}
+		}
+		
 	}
 	return 0;
 }
