@@ -9,7 +9,7 @@
 DWORD WINAPI Thing(LPVOID);
 
 unsigned char MinimumLap, MaximumLap, KOLap, MinimumCPU, MaximumCPU, KOCPU, MinimumLapLANC, MinimumLapLAND, MinimumLapLANS, MaximumLapLAN, MaximumPlayersLAN, MaximumDriftX, HeadlightsMode, WindowedMode, WheelFix, ExperimentalSplitScreenFix, EnableDebugWorldCamera, GameRegion;
-bool DriftPlus, DriftMultiply, UnlockRegionals, UnlockAllThings, EnableTrackSelectForFreeRun, AnyTrackInAnyMode, RemoveRaceBarriers, RemoveLockedAreaBarriers, GarageCameraHacks, MorePaint, MoreVinyls, ExOptsTeamTakeOver, EnableCameras, ShowOnline, ShowOutrun, EnableTrackSelectForOutrun, once1, once2, ShowSubtitles, UnfreezeKO, CarbonStyleRaceStatus, AlwaysRain, EnableLANSwitcher, LANSwitcherMode, ShowMoreRaceOptions, ShowDebugCarCustomize, EnableSaveLoadHotPos, IsOnFocus, SkipMovies, EnableSound, EnableMusic;
+bool DriftPlus, DriftMultiply, UnlockRegionals, UnlockAllThings, EnableTrackSelectForFreeRun, AnyTrackInAnyMode, RemoveRaceBarriers, RemoveLockedAreaBarriers, GarageCameraHacks, MorePaint, MoreVinyls, ExOptsTeamTakeOver, EnableCameras, ShowOnline, ShowOutrun, EnableTrackSelectForOutrun, once1, once2, ShowSubtitles, UnfreezeKO, CarbonStyleRaceStatus, AlwaysRain, EnableLANSwitcher, LANSwitcherMode, ShowMoreRaceOptions, ShowDebugCarCustomize, EnableSaveLoadHotPos, IsOnFocus, SkipMovies, EnableSound, EnableMusic, ShowHoodDecals, ShowCabinNeon, DisableLightBeams;
 float SplashScreenTimeLimit, NeonBrightness, WorldAnimationSpeed, GameSpeed, HeadlightsAmount, GeneralRainAmount, RainXing, RainFallSpeed, RainGravity, LowBeamAmount, HighBeamAmount, RoadReflection, RainIntensity, FallingRainSize;
 int DriftMutliplierThresholdPoints[] = { 350, 1400, 4200, 11200, 22400, 38080, 57120, 85680, 300, 1200, 3600, 9600, 19200, 32640, 48960, 73440, 250, 1000, 3000, 8000, 16000, 27200, 40800, 61200, 200, 800, 2400, 6400, 12800, 21760, 32640, 48960};
 int hotkeyAnyTrackInAnyMode, hotkeyUnlockAllThings, hotkeyLANSwitcher, hotkeyToggleHeadLights, StartingCash;
@@ -282,6 +282,8 @@ void Init()
 	SplashScreenTimeLimit = iniReader.ReadFloat("Menu", "SplashScreenTimeLimit", 30.0f);
 	GarageCameraHacks = iniReader.ReadInteger("Menu", "ShowcaseCamInfiniteYRotation", 0) == 1;
 	ExOptsTeamTakeOver = iniReader.ReadInteger("Menu", "DisableTakeover", 0) == 0;
+	ShowHoodDecals = iniReader.ReadInteger("Menu", "ShowHoodDecals", 1) == 1;
+	ShowCabinNeon = iniReader.ReadInteger("Menu", "ShowCabinNeon", 1) == 1;
 
 	// Gameplay
 	EnableCameras = iniReader.ReadInteger("Gameplay", "EnableHiddenCameraModes", 1) == 1;
@@ -299,6 +301,7 @@ void Init()
 	UnlockRegionals = iniReader.ReadInteger("Gameplay", "UnlockRegionalCars", 1) == 1;
 	UnlockAllThings = iniReader.ReadInteger("Gameplay", "UnlockAllThings", 1) == 1;
 	NeonBrightness = iniReader.ReadFloat("Gameplay", "NeonBrightness", 1.0f);
+	DisableLightBeams = iniReader.ReadBoolean("Gameplay", "DisableLightBeams", false);
 
 	// Weather
 	AlwaysRain = iniReader.ReadInteger("Weather", "AlwaysRain", 0) == 1;
@@ -484,6 +487,20 @@ void Init()
 		injector::MakeNOP(0x4B2F3E, 2, true);
 	}
 
+	if (ShowHoodDecals) {
+		// TODO Add code cave for menu option
+
+		injector::MakeNOP(0x00631D2E, 5);
+		injector::MakeNOP(0x00631D38, 9);
+	}
+
+	if (ShowCabinNeon) {
+		// TODO Add code cave for menu option
+
+		// TODO Fix pulse
+		injector::WriteMemory<unsigned char>(0x00635BBC, 0x70, true);
+	}
+
 	// Remove Online Option from Main Menu
 	if (!ShowOnline)
 	{
@@ -573,6 +590,12 @@ void Init()
 
 	// Game Speed
 	injector::WriteMemory<float>(0x7A5730, GameSpeed, true);
+
+	// Disables light beams that come from tail lights when NOS is used(Found by Aero_)
+	if (DisableLightBeams) {
+		injector::MakeJMP(0x0061ADB9, 0x0061AE8C, true);
+		injector::MakeNOP(0x0061ADBE, 1, true);
+	}
 
 	// Fix Outrun Mode Black Screen
 	if (ExperimentalSplitScreenFix)
