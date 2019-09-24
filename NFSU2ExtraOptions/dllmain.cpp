@@ -9,15 +9,18 @@
 DWORD WINAPI Thing(LPVOID);
 
 unsigned char MinimumLap, MaximumLap, KOLap, MinimumCPU, MaximumCPU, KOCPU, MinimumLapLANC, MinimumLapLAND, MinimumLapLANS, MaximumLapLAN, MaximumPlayersLAN, MaximumDriftX, HeadlightsMode, WindowedMode, WheelFix, ExperimentalSplitScreenFix, EnableDebugWorldCamera, GameRegion;
-bool DriftPlus, DriftMultiply, UnlockRegionals, UnlockAllThings, EnableTrackSelectForFreeRun, AnyTrackInAnyMode, RemoveRaceBarriers, RemoveLockedAreaBarriers, GarageCameraHacks, MorePaint, MoreVinyls, ExOptsTeamTakeOver, EnableCameras, ShowOnline, ShowOutrun, EnableTrackSelectForOutrun, once1, once2, ShowSubtitles, UnfreezeKO, CarbonStyleRaceStatus, AlwaysRain, EnableLANSwitcher, LANSwitcherMode, ShowMoreRaceOptions, ShowDebugCarCustomize, EnableSaveLoadHotPos, IsOnFocus, SkipMovies, EnableSound, EnableMusic;
+bool DriftPlus, DriftMultiply, UnlockRegionals, UnlockAllThings, EnableTrackSelectForFreeRun, AnyTrackInAnyMode, RemoveRaceBarriers, RemoveLockedAreaBarriers, GarageCameraHacks, ShowMoreCustomizationOptions, MoreVinyls, ExOptsTeamTakeOver, EnableCameras, ShowOnline, ShowOutrun, EnableTrackSelectForOutrun, once1, once2, ShowSubtitles, UnfreezeKO, CarbonStyleRaceStatus, AlwaysRain, EnableLANSwitcher, LANSwitcherMode, ShowMoreRaceOptions, ShowDebugCarCustomize, EnableSaveLoadHotPos, IsOnFocus, SkipMovies, EnableSound, EnableMusic, AutoDrive, HoodDecalsFix, CabinNeonFix, AllowLongerProfileNames, ShowDebugEventID, AllowMultipleInstances;
 float SplashScreenTimeLimit, NeonBrightness, WorldAnimationSpeed, GameSpeed, HeadlightsAmount, GeneralRainAmount, RainXing, RainFallSpeed, RainGravity, LowBeamAmount, HighBeamAmount, RoadReflection, RainIntensity, FallingRainSize;
 int DriftMutliplierThresholdPoints[] = { 350, 1400, 4200, 11200, 22400, 38080, 57120, 85680, 300, 1200, 3600, 9600, 19200, 32640, 48960, 73440, 250, 1000, 3000, 8000, 16000, 27200, 40800, 61200, 200, 800, 2400, 6400, 12800, 21760, 32640, 48960};
-int hotkeyAnyTrackInAnyMode, hotkeyUnlockAllThings, hotkeyLANSwitcher, hotkeyToggleHeadLights, StartingCash;
+int hotkeyAnyTrackInAnyMode, hotkeyUnlockAllThings, hotkeyFreezeCamera, hotkeyToggleHeadlights, hotkeyAutoDrive, StartingCash, ThreadDelay, NosTrailRepeatCount, DebugEventID;
 DWORD GameState;
 HWND windowHandle;
 
-char* StringBuffer1 = "© 2004 Electronic Arts Inc. All rights reserved.^NFSU2 Extra Options - © 2018 ExOpts Team. No rights reserved.";
+char* StringBuffer1 = "© 2004 Electronic Arts Inc. All rights reserved.^NFSU2 Extra Options - © 2020 ExOpts Team. No rights reserved.";
 DWORD _181419E5_New = (DWORD)StringBuffer1;
+
+char* aMagazine = "Magazine";
+char* aDVD = "DVD";
 
 DWORD PaintCategoryCodeCaveExit = 0x55D270;
 DWORD PaintCategoryCodeCaveExit2 = 0x55D0F6;
@@ -29,11 +32,23 @@ DWORD BarrierCodeCaveExit = 0x578077;
 DWORD StringReplacementCodeCaveExit = 0x4FFA1F;
 DWORD StartingCashCodeCaveExit = 0x532913;
 DWORD DebugCarCustomizeCodeCaveExit = 0x520F51;
+DWORD HoodDecalsCodeCaveExit = 0x546B81;
+DWORD CabinNeonCodeCaveExit = 0x54804F;
 
+char* (__cdecl* _strstr)(char const*, char const*) = (char* (__cdecl*)(char const*, char const*))0x75F140;
 void(__cdecl *j__malloc)(size_t a1) = (void(__cdecl*)(size_t))0x575620;
 int(__thiscall *AddElementToMenuWithStateID)(int _this, int a2, int a3, int a4, int a5) = (int(__thiscall*)(int, int, int, int, int))0x520CB0;
 void *(__thiscall *AddCustomElementToMenu)(void *_this, int a2, int a3, int a4) = (void*(__thiscall*)(void*, int, int, int))0x545920;
-int(__cdecl *sub_505450)(unsigned __int8 *a1) = (int(__cdecl*)(unsigned __int8*))0x505450;
+int(__cdecl *FEHashUpper)(unsigned __int8 *a1) = (int(__cdecl*)(unsigned __int8*))0x505450;
+int(__thiscall *ChooseRimBrand_AddRimCategory)(DWORD *_this, int RimBrandName, int RimBrandIcon, int RimBrandHash) = (int(__thiscall*)(DWORD *, int, int, int))0x5463B0;
+int(__thiscall *Player_AutoPilotOn)(DWORD *_Player) = (int(__thiscall*)(DWORD*))0x5FAE20;
+int(__thiscall *Player_AutoPilotOff)(DWORD *_Player) = (int(__thiscall*)(DWORD*))0x5FAF10;
+int(__thiscall* ChooseDecalCategory_AddCategoryOptionLock)(void* _this, int LayoutID, bool isDecalSelection, int TextureHash, int StringHash) = (int(__thiscall*)(void*, int, bool, int, int))0x52FF60;
+int(__thiscall* CustomizeNeonMenu_AddSelection)(void* _this, int CAR_SLOT_ID, int TextureHash, int StringHash, int CarAnimLocation) = (int(__thiscall*)(void*, int, int, int, int))0x53BC90;
+int(__cdecl* SelectableTrack_CalcLanguageHash)(int EventID, int IsReverse) = (int(__cdecl*)(int, int))0x516280;
+int(__cdecl* FEngSetVisible)(DWORD* FEObject) = (int(__cdecl*)(DWORD*))0x50CA50;
+int(*FEPrintf)(char const*, int, char const*, ...) = (int(*)(char const*, int, char const*, ...))0x537B80;
+DWORD(__cdecl* FEngFindObject)(char const* pkg_name, DWORD obj_hash) = (DWORD(__cdecl*)(char const*, DWORD))0x5379C0;
 
 void __declspec(naked) PaintCategoryCodeCave()
 {
@@ -96,7 +111,7 @@ void __declspec(naked) VinylCategoryCodeCave()
 			call AddCustomElementToMenu
 			mov eax, [esi + 0x04]
 			push eax
-			call sub_505450
+			call FEHashUpper
 			jmp VinylCategoryCodeCaveExit
 	}
 }
@@ -219,6 +234,29 @@ void __declspec(naked) DebugCarCustomizeCodeCave()
 	}
 }
 
+void __declspec(naked) NewRimsCodeCave()
+{
+	_asm
+	{
+		call ChooseRimBrand_AddRimCategory
+
+		push 0x055AD46B // SPONSOR_YOKOHAMA (There is no ADVAN string in NFSU2)
+		push 0x0F3990B6 // VISUAL_RIMS_BRAND_STOCK (No ADVAN icon)
+		push 0x0269D069 // ADVAN
+		mov ecx, ebx
+		call ChooseRimBrand_AddRimCategory
+
+		push 0x30B938BE // RIMS_BRAND_OASIS
+		push 0x0EE6D551 // VISUAL_RIMS_BRAND_OASIS
+		push 0x0365769E // OASIS
+		mov ecx, ebx
+		call ChooseRimBrand_AddRimCategory
+
+		push 0x546764
+		ret
+	}
+}
+
 bool __stdcall CheckRaceModeHook(int TrackInfoBlock, int NoDragAndDriftRaces)
 {
 	bool result;
@@ -240,22 +278,146 @@ bool __cdecl RegionLockHook(int CarID)
 	return 1;
 }
 
+void __declspec(naked) HoodDecalsCodeCave()
+{
+	_asm
+	{
+		push 0x8E52365C // string
+		push 0x8E52365C // icon
+		push 0x00 // 0 = select layout, 1 = select decal
+		push 0x00010005 // layout id
+		mov ecx, esi
+		call ChooseDecalCategory_AddCategoryOptionLock
+
+		push 0xDA88B711
+		jmp HoodDecalsCodeCaveExit
+	}
+}
+
+bool DoesFileExist(char const* _path) {
+
+	std::ifstream ifile(_path);
+	return (bool)ifile;
+}
+
+void __declspec(naked) CabinNeonCodeCave()
+{
+	_asm
+	{
+		push 0xFF
+		push 0x20E7F018 // "Cabin Neon"
+		push 0x745EE753 // Cabin Neon icon
+		push 0x9C // Cabin Neon
+		mov ecx, esi
+		call CustomizeNeonMenu_AddSelection
+
+		push 0xFF
+		push 0x20E7F018 // "Cabin Neon"
+		push 0xE82189F4 // Cabin Neon Configure icon
+		push 0x9E // Cabin Neon Style
+		mov ecx, esi
+		call CustomizeNeonMenu_AddSelection
+
+		push 0xFF
+		push 0x2225348F
+		jmp CabinNeonCodeCaveExit
+	}
+}
+
+void __declspec(naked) ProfileNameFilterCodeCave()
+{
+	_asm
+	{
+		push aDVD
+		push ebx
+		call _strstr // If it's a DVD cover
+		add esp,8
+		test al,al
+		jnz SkipThisProfile
+
+		push aMagazine
+		push ebx
+		call _strstr // If it's a Magazine cover
+		add esp, 8
+		test al, al
+		jnz SkipThisProfile
+
+		originalcode:
+			mov eax,[esi+0x48]
+			mov ecx,[esi+0x4C]
+			push 0x4E9122
+			retn
+
+		SkipThisProfile:
+			push 0x4E9130
+			retn
+	}
+}
+
+void __declspec(naked) ShowDebugEventIDLearnCodeCave()
+{
+	_asm
+	{
+		mov DebugEventID, ecx
+		call SelectableTrack_CalcLanguageHash
+		push 0x4CE19D
+		retn
+	}
+}
+
+void __declspec(naked) ShowDebugEventIDPrintCodeCave()
+{
+	_asm
+	{
+		call FEngSetVisible
+		mov eax, DebugEventID
+		push eax
+		push 0x007880C0 // "Track %d"
+		push 0x53C956C4 // Debug Event ID object hash
+		push edi // FNG name
+		call FEPrintf
+		add esp, 0x10
+		push 0x4CE1C9
+		retn
+	}
+}
+
+void __declspec(naked) FixMenuProfileNameLengthCodeCave()
+{
+	_asm
+	{
+		push ebx
+		mov ebx,eax
+		push 0xEB406FEC // Profile Name
+		push 0x790000 // UI_PC_Help_Bar.fng
+		call FEngFindObject
+		mov [eax+0x68], 0x10 // String length
+		add esp,8
+		mov eax, ebx
+		pop ebx
+		push 0x83A9E0 // Profile Name
+		push 0x54E74B
+		retn
+	}
+}
+
 void Init()
 {
 	// Read values from .ini
 	CIniReader iniReader("NFSU2ExtraOptionsSettings.ini");
 
 	// Hotkeys
-	hotkeyUnlockAllThings = iniReader.ReadInteger("Hotkeys", "UnlockAllThings", 116); // F5
 	hotkeyAnyTrackInAnyMode = iniReader.ReadInteger("Hotkeys", "AnyTrackInAnyMode", 36); // HOME
-	hotkeyToggleHeadLights = iniReader.ReadInteger("Hotkeys", "HeadLights", 72); // H
+	hotkeyToggleHeadlights = iniReader.ReadInteger("Hotkeys", "Headlights", 72); // H
+	hotkeyFreezeCamera = iniReader.ReadInteger("Hotkeys", "FreezeCamera", 19); // Pause/Break
+	hotkeyUnlockAllThings = iniReader.ReadInteger("Hotkeys", "UnlockAllThings", 116); // F5
+	hotkeyAutoDrive = iniReader.ReadInteger("Hotkeys", "AutoDrive", 117); //F6
 	EnableSaveLoadHotPos = iniReader.ReadInteger("Hotkeys", "EnableSaveLoadHotPos", 0) == 1;
 
 	// LapControllers
 	MinimumLap = iniReader.ReadInteger("LapControllers", "Minimum", 0);
 	MaximumLap = iniReader.ReadInteger("LapControllers", "Maximum", 127);
 	KOLap = iniReader.ReadInteger("LapControllers", "KOEnabled", 5);
-	UnfreezeKO = iniReader.ReadInteger("LapControllers", "UnfreezeKO", 0) == 1;
 
 	// OpponentControllers
 	MinimumCPU = iniReader.ReadInteger("OpponentControllers", "Minimum", 0);
@@ -273,14 +435,16 @@ void Init()
 	ShowMoreRaceOptions = iniReader.ReadInteger("Menu", "ShowMoreRaceOptions", 1) == 1;
 	ShowOnline = iniReader.ReadInteger("Menu", "ShowOnline", 1) == 1;
 	ShowSubtitles = iniReader.ReadInteger("Menu", "ShowSubs", 1) == 1;
-	MorePaint = iniReader.ReadInteger("Menu", "ShowMorePaintTypes", 1) == 1;
+	ShowMoreCustomizationOptions = iniReader.ReadInteger("Menu", "ShowMoreCustomizationOptions", 1) == 1;
 	MoreVinyls = iniReader.ReadInteger("Menu", "ShowSpecialVinyls", 1) == 1;
 	ShowDebugCarCustomize = iniReader.ReadInteger("Menu", "ShowDebugCarCustomize", 0) == 1;
+	ShowDebugEventID = iniReader.ReadInteger("Menu", "ShowDebugEventID", 0) == 1;
 	AnyTrackInAnyMode = iniReader.ReadInteger("Menu", "AnyTrackInAnyRaceMode", 1) == 1;
 	EnableTrackSelectForFreeRun = iniReader.ReadInteger("Menu", "FreeRunTrackSelect", 1) == 1;
 	EnableTrackSelectForOutrun = iniReader.ReadInteger("Menu", "OutrunTrackSelect", 1) == 1;
 	SplashScreenTimeLimit = iniReader.ReadFloat("Menu", "SplashScreenTimeLimit", 30.0f);
 	GarageCameraHacks = iniReader.ReadInteger("Menu", "ShowcaseCamInfiniteYRotation", 0) == 1;
+	AllowLongerProfileNames = iniReader.ReadInteger("Menu", "AllowLongerProfileNames", 0) == 1;
 	ExOptsTeamTakeOver = iniReader.ReadInteger("Menu", "DisableTakeover", 0) == 0;
 
 	// Gameplay
@@ -288,7 +452,7 @@ void Init()
 	EnableDebugWorldCamera = iniReader.ReadInteger("Gameplay", "EnableDebugCamera", 0) == 1;
 	GameSpeed = iniReader.ReadFloat("Gameplay", "GameSpeed", 1.0f);
 	WorldAnimationSpeed = iniReader.ReadFloat("Gameplay", "WorldAnimationSpeed", 45.0f);
-	HeadlightsMode = iniReader.ReadInteger("Gameplay", "HeadLightsMode", 2);
+	HeadlightsMode = iniReader.ReadInteger("Gameplay", "HeadlightsMode", 2);
 	LowBeamAmount = iniReader.ReadFloat("Gameplay", "LowBeamBrightness", 0.75f);
 	HighBeamAmount = iniReader.ReadFloat("Gameplay", "HighBeamBrightness", 1.00f);
 	RemoveRaceBarriers = iniReader.ReadInteger("Gameplay", "RemoveRaceBarriers", 0) == 1;
@@ -299,6 +463,7 @@ void Init()
 	UnlockRegionals = iniReader.ReadInteger("Gameplay", "UnlockRegionalCars", 1) == 1;
 	UnlockAllThings = iniReader.ReadInteger("Gameplay", "UnlockAllThings", 1) == 1;
 	NeonBrightness = iniReader.ReadFloat("Gameplay", "NeonBrightness", 1.0f);
+	NosTrailRepeatCount = iniReader.ReadInteger("Gameplay", "NosTrailRepeatCount", 8);
 
 	// Weather
 	AlwaysRain = iniReader.ReadInteger("Weather", "AlwaysRain", 0) == 1;
@@ -313,12 +478,16 @@ void Init()
 	// Fixes
 	WheelFix = iniReader.ReadInteger("Fixes", "DisappearingWheelsFix", 1) == 1;
 	ExperimentalSplitScreenFix = iniReader.ReadInteger("Fixes", "ExperimentalSplitScreenFix", 0) == 1;
+	HoodDecalsFix = iniReader.ReadInteger("Fixes", "HoodDecalsFix", 1) == 1;
+	CabinNeonFix = iniReader.ReadInteger("Fixes", "CabinNeonFix", 1) == 1;
 
 	// Misc
 	WindowedMode = iniReader.ReadInteger("Misc", "WindowedMode", 0);
 	SkipMovies = iniReader.ReadInteger("Misc", "SkipMovies", 0) == 1;
 	EnableSound = iniReader.ReadInteger("Misc", "EnableSound", 1) == 1;
 	EnableMusic = iniReader.ReadInteger("Misc", "EnableMusic", 1) == 1;
+	AllowMultipleInstances = iniReader.ReadInteger("Misc", "AllowMultipleInstances", 0) == 1;
+	ThreadDelay = iniReader.ReadInteger("Misc", "ThreadDelay", 5);
 
 	// Restrictions
 	MinimumLap %= 128;
@@ -336,6 +505,12 @@ void Init()
 
 	MaximumDriftX %= 10;
 	if (MaximumDriftX == 0) MaximumDriftX = 1;
+
+	// Allow Multiple Instances
+	if (AllowMultipleInstances)
+	{
+		injector::WriteMemory<unsigned char>(0x580E11, 0xEB, true);
+	}
 
 	// Lap and opponent controllers
 	injector::WriteMemory<unsigned char>(0x4B3D82, MinimumLap, true);		// Minimum Lap Controller For Decrement
@@ -381,7 +556,7 @@ void Init()
 	injector::WriteMemory<unsigned char>(0x56CC9C, 0x00, true); // Change the address of Drift multiplier threshold points arrays
 	injector::WriteMemory<unsigned char>(0x56CC9D, 0x50, true); // Change the address of Drift multiplier threshold points arrays
 	injector::WriteMemory<unsigned char>(0x56CC9E, 0x92, true); // Change the address of Drift multiplier threshold points arrays
-	for (int i = 0; i < 36; i++) injector::WriteMemory(0x925004 + 4 * i, DriftMutliplierThresholdPoints[i], true);
+	for (int i = 0; i < 32; i++) injector::WriteMemory(0x925004 + 4 * i, DriftMutliplierThresholdPoints[i], true);
 	injector::WriteMemory<unsigned char>(0x56CC58, MaximumDriftX, true); // Maximum Drift Level Controller (Main)
 	injector::WriteMemory<unsigned char>(0x56CC90, MaximumDriftX, true); // Maximum Drift Level Controller (To Show threshold points)
 
@@ -391,7 +566,11 @@ void Init()
 	injector::MakeJMP(0x56DB51, DriftMultiplierCodeCave, true);
 
 	// Remove Region Car Lock
-	if (UnlockRegionals) 
+	if (UnlockRegionals 
+		&& DoesFileExist("..\\CARS\\CORSA\\TEXTURES.BIN")
+		&& DoesFileExist("..\\CARS\\PEUGOT106\\TEXTURES.BIN")
+		&& DoesFileExist("..\\CARS\\CORSA\\GEOMETRY.BIN")
+		&& DoesFileExist("..\\CARS\\PEUGOT106\\GEOMETRY.BIN"))
 	{
 		/* Old Method
 		injector::MakeNOP(0x4e237e, 2, true); // Customize
@@ -422,6 +601,7 @@ void Init()
 	if (UnlockAllThings) 
 	{
 		injector::WriteMemory<unsigned char>(0x838464, 1, true);
+		injector::MakeNOP(0x50F0D8, 2, true); // Fix individual performance parts
 	}
 
 	// Enable Track Selection Screen for Free Run (9) Game Mode
@@ -469,6 +649,11 @@ void Init()
 		injector::MakeRangedNOP(0x56D9F1, 0x56DA0C, true); // 0 = Autoscores for all tracks
 		injector::WriteMemory<DWORD>(0x56DA0D, 0x83AB01, true); // ai count
 		injector::MakeRangedNOP(0x56DA11, 0x56DA16, true);
+
+		// Unfreeze KO
+		injector::WriteMemory<unsigned char>(0x4b4068, 0xEB, true); // Don't copy static numbers
+		injector::WriteMemory<unsigned char>(0x4B3E14, 0xEB, true); // Don't freeze laps
+		injector::WriteMemory<unsigned char>(0x4B3903, 0xEB, true); // Don't freeze opponents
 	}
 
 	// Enable Outrun Track Select
@@ -513,13 +698,35 @@ void Init()
 		injector::MakeNOP(0x55B061, 2, true);
 	}
 
-	// Add Powder Coat and High Heat categories to Body Paint
-	if (MorePaint)
+	// More Customization Options
+	if (ShowMoreCustomizationOptions)
 	{
+		// Add Powder Coat and High Heat categories to Body Paint
 		injector::MakeNOP(0x55D26A, PaintCategoryCodeCaveExit - 0x55D26A, true);
 		injector::MakeJMP(0x55D26A, PaintCategoryCodeCave, true);
 		injector::MakeNOP(0x55D0F0, PaintCategoryCodeCaveExit2 - 0x55D0F0, true);
 		injector::MakeJMP(0x55D0F0, PaintCategoryCodeCave2, true);
+
+		// Advan (Yokohama) and Oasis Rims
+		injector::MakeJMP(0x54675F, NewRimsCodeCave, true);
+
+		// Hood Decals
+		injector::MakeJMP(0x546B7C, HoodDecalsCodeCave, true);
+
+		// Cabin Neons
+		injector::MakeJMP(0x548048, CabinNeonCodeCave, true);
+	}
+
+	// Fix Hood Decals
+	if (HoodDecalsFix)
+	{
+		injector::WriteMemory<unsigned char>(0x631D27, 0xEB, true);
+	}
+
+	// Fix Cabin Neon
+	if (CabinNeonFix)
+	{
+		injector::WriteMemory<unsigned char>(0x635BBC, 0x70, true);
 	}
 
 	// Add Debug Vinyls to menu
@@ -527,14 +734,6 @@ void Init()
 	{
 		injector::MakeNOP(0x54625C, VinylCategoryCodeCaveExit - 0x54625C, true);
 		injector::MakeJMP(0x54625C, VinylCategoryCodeCave, true);
-	}
-
-	// Unfreeze lap and opponent controllers for KO
-	if (UnfreezeKO)
-	{
-		injector::WriteMemory<unsigned char>(0x4b4068, 0xEB, true); // Don't copy static numbers
-		injector::WriteMemory<unsigned char>(0x4B3E14, 0xEB, true); // Don't freeze laps
-		injector::WriteMemory<unsigned char>(0x4B3903, 0xEB, true); // Don't freeze opponents
 	}
 
 	// Carbon-Style Race Status
@@ -547,7 +746,7 @@ void Init()
 		injector::WriteMemory<unsigned char>(0x4AA286, 0x85, true); // Jump to lap x/x
 	}
 
-	// Load headlights preferences
+	// Load Headlights preferences
 	switch (HeadlightsMode)
 	{
 	case 0:
@@ -573,6 +772,9 @@ void Init()
 
 	// Game Speed
 	injector::WriteMemory<float>(0x7A5730, GameSpeed, true);
+
+	// NOS Trail Repeat Count
+	injector::WriteMemory<int>(0x802920, NosTrailRepeatCount, true);
 
 	// Fix Outrun Mode Black Screen
 	if (ExperimentalSplitScreenFix)
@@ -614,12 +816,22 @@ void Init()
 	injector::WriteMemory<float>(0x803974, RainFallSpeed, true);
 	injector::WriteMemory<float>(0x803978, RainGravity, true);
 
-	// LAN Region Switcher - Init and Read Last State
-	if (EnableLANSwitcher)
+	// Allow Longer Save Game Names
+	if (AllowLongerProfileNames)
 	{
-		injector::WriteMemory<unsigned char>(0x4FB57E, 0xB8, true); // mov eax,*
-		injector::WriteMemory<unsigned char>(0x4FB57F, LANSwitcherMode, true); // 00 (NTSC) or 01 (PAL)
-		injector::MemoryFill(0x4FB580, 0x00, 3, true); // 00 00 00
+		injector::WriteMemory<unsigned char>(0x556517, 15, true); // UIProfileMenu::ShowKeyboard - Input Limit on Save Game Creation
+		injector::WriteMemory<unsigned char>(0x55651B, 0, true); // UIProfileMenu::ShowKeyboard - Allow every character
+		injector::WriteMemory<unsigned char>(0x4E910A, 16, true); // FEPkgMemcardList::NotificationMessage - Include Longer Names in the Load Save list
+		injector::WriteMemory<unsigned char>(0x4E910E, '/', true); // FEPkgMemcardList::NotificationMessage - Ignore saves with this character
+		injector::MakeJMP(0x4E911C, ProfileNameFilterCodeCave, true); // Filters DVD and Magazine covers
+		injector::MakeJMP(0x54E746, FixMenuProfileNameLengthCodeCave, true); // Fix the last character
+	}
+
+	// Show Debug Event ID
+	if (ShowDebugEventID)
+	{
+		injector::MakeJMP(0x4CE198, ShowDebugEventIDLearnCodeCave, true); // Get event id before hashing
+		injector::MakeJMP(0x4CE1C4, ShowDebugEventIDPrintCodeCave, true); // Print it to the debug id object
 	}
 
 	// Windowed Mode
@@ -630,7 +842,7 @@ void Init()
 
 	if (SkipMovies)
 	{
-		//injector::WriteMemory<unsigned char>(0x926144, SkipMovies, true);
+		injector::WriteMemory<unsigned char>(0x8650A8, SkipMovies, true);
 	}
 
 	if (!EnableSound)
@@ -651,7 +863,7 @@ DWORD WINAPI Thing(LPVOID)
 {
 	while (true)
 	{
-		Sleep(1);
+		Sleep(ThreadDelay);
 		GameState = *(DWORD*)0x8654A4; // 3 = FE, 4&5 = Loading screen, 6 = Gameplay
 		windowHandle = *(HWND*)0x870990;
 		IsOnFocus = !(*(bool*)0x8709E0);
@@ -698,7 +910,37 @@ DWORD WINAPI Thing(LPVOID)
 				injector::MakeCALL(0x4cdef5, 0x4987C0, true);
 			}
 
-			while ((GetAsyncKeyState(hotkeyAnyTrackInAnyMode) & 0x8000) > 0) { Sleep(0); }
+			while ((GetAsyncKeyState(hotkeyAnyTrackInAnyMode) & 0x8000) > 0) { Sleep(ThreadDelay); }
+		}
+
+		// Drunk Driver
+		if ((GetAsyncKeyState(hotkeyAutoDrive) & 1) && (GameState == 6) && IsOnFocus) // When pressed "Drunk Driver" key
+		{
+			AutoDrive = !AutoDrive;
+
+			DWORD PlayerThing = *(DWORD*)0x8900AC;
+
+			if (PlayerThing)
+			{
+				if (AutoDrive)
+				{
+					Player_AutoPilotOn((DWORD*)PlayerThing);
+				}
+				else
+				{
+					Player_AutoPilotOff((DWORD*)PlayerThing);
+				}
+			}
+			
+			while ((GetAsyncKeyState(hotkeyAutoDrive) & 0x8000) > 0) { Sleep(ThreadDelay); }
+		}
+
+		// Freeze Camera
+		if ((GetAsyncKeyState(hotkeyFreezeCamera) & 1) && (GameState == 6) && IsOnFocus)
+		{
+			*(bool*)0x828640 = !(*(bool*)0x828640);
+
+			while ((GetAsyncKeyState(hotkeyFreezeCamera) & 0x8000) > 0) { Sleep(ThreadDelay); }
 		}
 
 		if ((GetAsyncKeyState(hotkeyUnlockAllThings) & 1) && IsOnFocus) // Unlock All Things
@@ -710,22 +952,24 @@ DWORD WINAPI Thing(LPVOID)
 			if (UnlockAllThings)
 			{
 				injector::WriteMemory<unsigned char>(0x838464, 1, true);
+				injector::MakeNOP(0x50F0D8, 2, true); // Fix individual performance parts
 			}
 
 			else
 			{
 				injector::WriteMemory<unsigned char>(0x838464, 0, true);
+				injector::WriteMemory<WORD>(0x50F0D8, 0x1675, true); // Fix individual performance parts
 			}
 
-			while ((GetAsyncKeyState(hotkeyUnlockAllThings) & 0x8000) > 0) { Sleep(0); }
+			while ((GetAsyncKeyState(hotkeyUnlockAllThings) & 0x8000) > 0) { Sleep(ThreadDelay); }
 		}
 
 		// Headlights
-		if ((GetAsyncKeyState(hotkeyToggleHeadLights) & 1) && (GameState == 6) && IsOnFocus) // When pressed "Toggle Head Lights" key
+		if ((GetAsyncKeyState(hotkeyToggleHeadlights) & 1) && (GameState == 6) && IsOnFocus) // When pressed "Toggle Head Lights" key
 		{
 			HeadlightsMode = (HeadlightsMode + 1) % 3; // 0, 1 or 2
 			CIniReader iniReader("NFSU2ExtraOptionsSettings.ini");
-			iniReader.WriteInteger("Gameplay", "HeadLightsMode", HeadlightsMode);
+			iniReader.WriteInteger("Gameplay", "HeadlightsMode", HeadlightsMode);
 
 			switch (HeadlightsMode)
 			{
@@ -743,7 +987,7 @@ DWORD WINAPI Thing(LPVOID)
 				break;
 			}
 
-			while ((GetAsyncKeyState(hotkeyToggleHeadLights) & 0x8000) > 0) { Sleep(0); }
+			while ((GetAsyncKeyState(hotkeyToggleHeadlights) & 0x8000) > 0) { Sleep(ThreadDelay); }
 		}
 
 		// Save & Load Hot Position
