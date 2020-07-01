@@ -6,10 +6,11 @@
 #include "..\includes\IniReader.h"
 #include <d3d9.h>
 
-DWORD WINAPI Thing(LPVOID);
+//DWORD WINAPI Thing(LPVOID);
+void Thing();
 
 unsigned char MinimumLap, MaximumLap, KOLap, MinimumCPU, MaximumCPU, KOCPU, MinimumLapLANC, MinimumLapLAND, MinimumLapLANS, MaximumLapLAN, MaximumPlayersLAN, MaximumDriftX, HeadlightsMode, WindowedMode, WheelFix, ExperimentalSplitScreenFix, EnableDebugWorldCamera, GameRegion;
-bool DriftPlus, DriftMultiply, UnlockRegionals, UnlockAllThings, EnableTrackSelectForFreeRun, AnyTrackInAnyMode, RemoveRaceBarriers, RemoveLockedAreaBarriers, GarageCameraHacks, ShowMoreCustomizationOptions, MoreVinyls, ExOptsTeamTakeOver, EnableCameras, ShowOnline, ShowOutrun, EnableTrackSelectForOutrun, once1, once2, ShowSubtitles, UnfreezeKO, CarbonStyleRaceStatus, AlwaysRain, EnableLANSwitcher, LANSwitcherMode, ShowMoreRaceOptions, ShowDebugCarCustomize, EnableSaveLoadHotPos, IsOnFocus, SkipMovies, EnableSound, EnableMusic, AutoDrive, HoodDecalsFix, CabinNeonFix, AllowLongerProfileNames, ShowDebugEventID, AllowMultipleInstances;
+bool DriftPlus, DriftMultiply, UnlockRegionals, UnlockAllThings, EnableTrackSelectForFreeRun, AnyTrackInAnyMode, RemoveRaceBarriers, RemoveLockedAreaBarriers, GarageCameraHacks, ShowMoreCustomizationOptions, MoreVinyls, ExOptsTeamTakeOver, EnableCameras, ShowOnline, ShowOutrun, EnableTrackSelectForOutrun, once1, once2, ShowSubtitles, UnfreezeKO, CarbonStyleRaceStatus, AlwaysRain, EnableLANSwitcher, LANSwitcherMode, ShowMoreRaceOptions, ShowDebugCarCustomize, EnableSaveLoadHotPos, IsOnFocus, SkipMovies, EnableSound, EnableMusic, AutoDrive, HoodDecalsFix, CabinNeonFix, AllowLongerProfileNames, ShowDebugEventID, AllowMultipleInstances, HideNiftyDriftMessages, DamageFix;
 float SplashScreenTimeLimit, NeonBrightness, WorldAnimationSpeed, GameSpeed, HeadlightsAmount, GeneralRainAmount, RainXing, RainFallSpeed, RainGravity, LowBeamAmount, HighBeamAmount, RoadReflection, RainIntensity, FallingRainSize;
 int DriftMutliplierThresholdPoints[] = { 350, 1400, 4200, 11200, 22400, 38080, 57120, 85680, 300, 1200, 3600, 9600, 19200, 32640, 48960, 73440, 250, 1000, 3000, 8000, 16000, 27200, 40800, 61200, 200, 800, 2400, 6400, 12800, 21760, 32640, 48960};
 int hotkeyAnyTrackInAnyMode, hotkeyUnlockAllThings, hotkeyFreezeCamera, hotkeyToggleHeadlights, hotkeyAutoDrive, StartingCash, ThreadDelay, NosTrailRepeatCount, DebugEventID;
@@ -19,8 +20,8 @@ HWND windowHandle;
 char* StringBuffer1 = "© 2004 Electronic Arts Inc. All rights reserved.^NFSU2 Extra Options - © 2020 ExOpts Team. No rights reserved.";
 DWORD _181419E5_New = (DWORD)StringBuffer1;
 
-char* aMagazine = "Magazine";
-char* aDVD = "DVD";
+char* aMagazine = " Magazine ";
+char* aDVD = " DVD ";
 
 DWORD PaintCategoryCodeCaveExit = 0x55D270;
 DWORD PaintCategoryCodeCaveExit2 = 0x55D0F6;
@@ -34,6 +35,7 @@ DWORD StartingCashCodeCaveExit = 0x532913;
 DWORD DebugCarCustomizeCodeCaveExit = 0x520F51;
 DWORD HoodDecalsCodeCaveExit = 0x546B81;
 DWORD CabinNeonCodeCaveExit = 0x54804F;
+DWORD _ftol2 = 0x75BED4;
 
 char* (__cdecl* _strstr)(char const*, char const*) = (char* (__cdecl*)(char const*, char const*))0x75F140;
 void(__cdecl *j__malloc)(size_t a1) = (void(__cdecl*)(size_t))0x575620;
@@ -324,6 +326,130 @@ void __declspec(naked) CabinNeonCodeCave()
 	}
 }
 
+void __declspec(naked) CabinNeonFixCodeCave1()
+{
+	_asm
+	{
+		jg origcode
+		mov eax, [esi + 0x04]
+		mov eax, [eax + 0x800]
+		mov cl, [eax + 0x05]
+		shr cl, 05
+		test cl, cl
+		jng loc_622D2F
+
+		origcode:
+			push 0x6227CE
+			retn
+
+		loc_622D2F:
+			push 0x622D2F
+			retn
+	}
+}
+
+void __declspec(naked) CabinNeonFixCodeCave2()
+{
+	_asm
+	{
+		movzx eax, byte ptr ds: [esi + 0x360 + 0xC]
+		mov[esp + 0x5C], eax
+		fild dword ptr ds: [esp + 0x5C]
+		fmul st(0), st(1)
+		call _ftol2
+		movzx edx, byte ptr ds: [esi + 0x361 + 0xC]
+		movzx ecx, byte ptr ds: [esi + 0x35C + 0xC]
+		mov[esp + 0x5C], edx
+		add eax, ecx
+		mov[esp + 0xD8], eax
+		fild dword ptr ds: [esp + 0x5C]
+		fmul st(0), st(1)
+		call _ftol2
+		movzx edx, byte ptr ds: [esi + 0x362 + 0xC]
+		movzx ecx, byte ptr ds: [esi + 0x35D + 0xC]
+		mov[esp + 0x5C], edx
+		add eax, ecx
+		mov[esp + 0x190], eax
+		fild dword ptr ds: [esp + 0x5C]
+		fmul st(0), st(1)
+		call _ftol2
+		movzx edx, byte ptr ds: [esi + 0x363 + 0xC]
+		movzx ecx, byte ptr ds: [esi + 0x35E + 0xC]
+		mov[esp + 0x5C], edx
+		add eax, ecx
+		mov[esp + 0x1F0], eax
+		fild dword ptr ds: [esp + 0x5C]
+		fmul st(0), st(1)
+		call _ftol2
+		movzx ecx, byte ptr ds:[esi + 0x35F + 0xC]
+		mov edx, [esp + 0xD4]
+		add edx, eax
+		mov eax, [esp + 0xD8]
+		add ecx, edx
+		test eax, eax
+		jle p1
+		cmp eax, 0xFE
+		mov[esp + 0xC0], 0xFE
+		jg p2
+		p5 :
+		mov[esp + 0xC0], eax
+			p2 :
+		mov eax, [esp + 0x190]
+			test eax, eax
+			jg p3
+			xor eax, eax
+			jmp p4
+			p1 :
+		xor eax, eax
+			jmp p5
+			p3 :
+		cmp eax, 0xFE
+			mov[esp + 0xD8], 0xFE
+			jg p6
+			p4 :
+		mov[esp + 0xD8], eax
+			p6 :
+		mov eax, [esp + 0x1F0]
+			test eax, eax
+			jg p7
+			xor eax, eax
+			jmp p8
+			p7 :
+		cmp eax, 0xFE
+			mov edx, 0xFE
+			jg p9
+			p8 :
+		mov edx, eax
+			p9 :
+		test ecx, ecx
+			jg p10
+			xor ecx, ecx
+			jmp p11
+			p10 :
+		cmp ecx, 0xFE
+			mov eax, 0xFE
+			jg p12
+			p11 :
+		mov eax, ecx
+			p12 :
+		mov ecx, [esp + 0xD8]
+			shl eax, 8
+			or eax, edx
+			shl eax, 8
+			or eax, ecx
+			mov ecx, [esp + 0xC0]
+			shl eax, 8
+			or eax, ecx
+			mov[esi + 0x364 + 0xC], eax
+
+		originalcode :
+			mov eax, [esp + 0xEC]
+
+			push 0x622BE0
+			retn
+	}
+}
+
 void __declspec(naked) ProfileNameFilterCodeCave()
 {
 	_asm
@@ -401,6 +527,35 @@ void __declspec(naked) FixMenuProfileNameLengthCodeCave()
 	}
 }
 
+int __cdecl GetPOVTypeFromPlayerCamera(int a1)
+{
+	int result; // eax
+
+	switch (a1)
+	{
+	case 0:
+		result = 2;
+		break;
+	case 1:
+		result = 4;
+		break;
+	case 2:
+		result = 1;
+		break;
+	case 4:
+		result = 5;
+		break;
+	case 5:
+		result = 3;
+		break;
+	case 3:
+	default:
+		result = 0;
+		break;
+	}
+	return result;
+}
+
 void Init()
 {
 	// Read values from .ini
@@ -429,6 +584,7 @@ void Init()
 	MaximumDriftX = iniReader.ReadInteger("Drift", "MaximumMultiplier", 9);
 	DriftPlus = iniReader.ReadInteger("Drift", "PlusSign", 0) == 1;
 	DriftMultiply = iniReader.ReadInteger("Drift", "ShowWithoutMultiplying", 0) == 1;
+	HideNiftyDriftMessages = iniReader.ReadInteger("Drift", "HideNiftyDriftMessages", 0) == 1;
 
 	// Menu
 	ShowOutrun = iniReader.ReadInteger("Menu", "ShowOutrun", 1) == 1;
@@ -480,6 +636,7 @@ void Init()
 	ExperimentalSplitScreenFix = iniReader.ReadInteger("Fixes", "ExperimentalSplitScreenFix", 0) == 1;
 	HoodDecalsFix = iniReader.ReadInteger("Fixes", "HoodDecalsFix", 1) == 1;
 	CabinNeonFix = iniReader.ReadInteger("Fixes", "CabinNeonFix", 1) == 1;
+	DamageFix = iniReader.ReadInteger("Fixes", "DamageFix", 1) == 1;
 
 	// Misc
 	WindowedMode = iniReader.ReadInteger("Misc", "WindowedMode", 0);
@@ -550,6 +707,12 @@ void Init()
 	if (DriftPlus) 
 	{
 		injector::WriteMemory<unsigned char>(0x4AB7DB, 0x74, true);
+	}
+
+	// Hide "Good Drift", "Insane Drift", etc.
+	if (HideNiftyDriftMessages)
+	{
+		injector::WriteMemory<unsigned char>(0x4AC136, 0xEB, true);
 	}
 
 	injector::WriteMemory<unsigned char>(0x56CC98, 0xCF, true); // Change Threshold array sizes from 4(x5) to 8(x9).
@@ -632,11 +795,15 @@ void Init()
 	injector::MakeRangedNOP(0x53290D, StartingCashCodeCaveExit, true);
 	injector::MakeJMP(0x53290D, StartingCashCodeCave, true);
 
-	// Enable Drift Camera For All
+	// Enable Drift and Driver Camera For All
 	if (EnableCameras)
 	{
-		injector::MakeNOP(0x50256A, 2, true);
-		injector::MakeNOP(0x502572, 2, true);
+		// Increase number of selectable camera angles to 5
+		injector::WriteMemory<int>(0x50254E, 5, true);
+		injector::WriteMemory<int>(0x502575, 5, true);
+
+		// Make driver camera selectable
+		injector::MakeJMP(0x502500, GetPOVTypeFromPlayerCamera, true);
 	}
 
 	// Show More Race Options
@@ -707,6 +874,9 @@ void Init()
 		injector::MakeNOP(0x55D0F0, PaintCategoryCodeCaveExit2 - 0x55D0F0, true);
 		injector::MakeJMP(0x55D0F0, PaintCategoryCodeCave2, true);
 
+		// Fix category switching via 9/0 - L1/R1
+		injector::MakeNOP(0x563A81, 6, true);
+
 		// Advan (Yokohama) and Oasis Rims
 		injector::MakeJMP(0x54675F, NewRimsCodeCave, true);
 
@@ -715,6 +885,14 @@ void Init()
 
 		// Cabin Neons
 		injector::MakeJMP(0x548048, CabinNeonCodeCave, true);
+
+		// Clean out (null) and (badptr) strings
+		injector::WriteMemory<unsigned char>(0x786D58, 0x00, true);
+		injector::WriteMemory<unsigned char>(0x786D4C, 0x00, true);
+
+		// Allow user to reinstall and customize stock gauges
+		injector::MakeNOP(0x564154, 2, true);
+		injector::WriteMemory<unsigned char>(0x5641A8, 0xEB, true);
 	}
 
 	// Fix Hood Decals
@@ -726,7 +904,14 @@ void Init()
 	// Fix Cabin Neon
 	if (CabinNeonFix)
 	{
-		injector::WriteMemory<unsigned char>(0x635BBC, 0x70, true);
+		injector::MakeJMP(0x6227C8, CabinNeonFixCodeCave1, true);
+		injector::MakeJMP(0x622BD9, CabinNeonFixCodeCave2, true);
+	}
+
+	// Fix damage
+	if (DamageFix)
+	{
+		injector::WriteMemory<unsigned char>(0x59FC13, 0xEB, true);
 	}
 
 	// Add Debug Vinyls to menu
@@ -856,13 +1041,16 @@ void Init()
 	}
 
 	// Other things
-	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)&Thing, NULL, 0, NULL);
+	//CreateThread(0, 0, (LPTHREAD_START_ROUTINE)&Thing, NULL, 0, NULL);
+	injector::MakeCALL(0x581470, Thing, true); // Hook the hotkey detection to the main loop
 }
 
-DWORD WINAPI Thing(LPVOID)
+/*DWORD WINAPI*/ void Thing(/*LPVOID*/)
 {
-	while (true)
-	{
+	//while (true)
+	//{
+		_asm pushad;
+
 		Sleep(ThreadDelay);
 		GameState = *(DWORD*)0x8654A4; // 3 = FE, 4&5 = Loading screen, 6 = Gameplay
 		windowHandle = *(HWND*)0x870990;
@@ -909,8 +1097,6 @@ DWORD WINAPI Thing(LPVOID)
 			{
 				injector::MakeCALL(0x4cdef5, 0x4987C0, true);
 			}
-
-			while ((GetAsyncKeyState(hotkeyAnyTrackInAnyMode) & 0x8000) > 0) { Sleep(ThreadDelay); }
 		}
 
 		// Drunk Driver
@@ -931,16 +1117,12 @@ DWORD WINAPI Thing(LPVOID)
 					Player_AutoPilotOff((DWORD*)PlayerThing);
 				}
 			}
-			
-			while ((GetAsyncKeyState(hotkeyAutoDrive) & 0x8000) > 0) { Sleep(ThreadDelay); }
 		}
 
 		// Freeze Camera
 		if ((GetAsyncKeyState(hotkeyFreezeCamera) & 1) && (GameState == 6) && IsOnFocus)
 		{
 			*(bool*)0x828640 = !(*(bool*)0x828640);
-
-			while ((GetAsyncKeyState(hotkeyFreezeCamera) & 0x8000) > 0) { Sleep(ThreadDelay); }
 		}
 
 		if ((GetAsyncKeyState(hotkeyUnlockAllThings) & 1) && IsOnFocus) // Unlock All Things
@@ -960,8 +1142,6 @@ DWORD WINAPI Thing(LPVOID)
 				injector::WriteMemory<unsigned char>(0x838464, 0, true);
 				injector::WriteMemory<WORD>(0x50F0D8, 0x1675, true); // Fix individual performance parts
 			}
-
-			while ((GetAsyncKeyState(hotkeyUnlockAllThings) & 0x8000) > 0) { Sleep(ThreadDelay); }
 		}
 
 		// Headlights
@@ -986,8 +1166,6 @@ DWORD WINAPI Thing(LPVOID)
 				injector::WriteMemory<unsigned char>(0x7A3658, 'H', true);
 				break;
 			}
-
-			while ((GetAsyncKeyState(hotkeyToggleHeadlights) & 0x8000) > 0) { Sleep(ThreadDelay); }
 		}
 
 		// Save & Load Hot Position
@@ -1004,8 +1182,9 @@ DWORD WINAPI Thing(LPVOID)
 			}
 		}
 		
-	}
-	return 0;
+	//}
+
+	_asm popad;
 }
 
 BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD reason, LPVOID /*lpReserved*/)
