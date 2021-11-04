@@ -337,7 +337,10 @@ void Init()
 	}
 
 	// Takeover
-	injector::MakeJMP(0x4A91B6, SplashScreenCodeCave, true); // SplashScreen::SplashScreen
+	if (ExOptsTeamTakeOver)
+	{
+		injector::MakeJMP(0x4A91B6, SplashScreenCodeCave, true); // SplashScreen::SplashScreen
+	}
 
 	// Show Subtitles
 	if (ShowSubtitles)
