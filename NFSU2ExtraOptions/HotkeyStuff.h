@@ -88,6 +88,7 @@ void Thing()
 			else
 			{
 				Player_AutoPilotOff((DWORD*)PlayerThing);
+				Player_SetInputMode((void*)PlayerThing, 2);
 			}
 		}
 	}
