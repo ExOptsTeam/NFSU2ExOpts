@@ -44,6 +44,7 @@ DWORD*(__cdecl* FEngFindPackage)(const char* pkg_name) = (DWORD*(__cdecl*)(const
 DWORD*(__cdecl* FEngFindString)(const char* pkg_name, DWORD ObjectHash) = (DWORD*(__cdecl*)(const char*, DWORD))0x537A10;
 void(__cdecl* FEngSetLanguageHash)(DWORD* FEString, DWORD LanguageHash) = (void(__cdecl*)(DWORD*, DWORD))0x50C900;
 void(__thiscall* sub_504820)(DWORD* Unk, BYTE something) = (void(__thiscall*)(DWORD*, BYTE))0x504820;
+void(__thiscall* Player_SetInputMode)(void* Player, int InputMode) = (void(__thiscall*)(void*, int))0x605C70;
 
 // Functions which has odd calling conventions (using UserCalls.h to wrap them)
 // none
