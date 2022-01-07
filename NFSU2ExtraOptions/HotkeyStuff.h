@@ -96,20 +96,12 @@ void Thing()
 	// Freeze Camera
 	if ((GetAsyncKeyState(hotkeyFreezeCamera) & 1) && (TheGameFlowManager == 6) && IsOnFocus)
 	{
-		static BOOL isCameraFrozen = FALSE;
-		static const int call_near_size = 5;
-		static BYTE call_backup[call_near_size]; // in case of someone already placed hook there
-		static void* const call_SetCameraMatrix = (void*)0x453BF3;
-		if (isCameraFrozen) 
-		{
-			injector::WriteMemoryRaw(call_SetCameraMatrix, call_backup, call_near_size, true);
-		}
-		else 
-		{
-			memcpy(call_backup, call_SetCameraMatrix, call_near_size);
-			injector::MakeNOP(call_SetCameraMatrix, call_near_size);
-		}
-		isCameraFrozen ^= 1; // isCameraFrozen = !isCameraFrozen
+		static BYTE byte_backup = 0xC3; // ret
+		static void* const CubicCameraMover_Update = (void*)0x453570;
+
+		BYTE tmp = *(BYTE*)CubicCameraMover_Update;
+		injector::WriteMemory<BYTE>(CubicCameraMover_Update, byte_backup, true);
+		byte_backup = tmp;
 	}
 
 	if ((GetAsyncKeyState(hotkeyUnlockAllThings) & 1) && IsOnFocus) // Unlock All Things
